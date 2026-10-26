@@ -135,9 +135,11 @@ export default function Game(props: Props) {
 
   // Persist progress
   const { onSave } = props
+  // (checked from the board itself, so the save that races the win can't resurrect a finished puzzle)
+  const complete = placed.every(p => p !== null) && eqStatus.every(Boolean)
   useEffect(() => {
-    if (!solved) onSave({ placed, bankOrder, hints, elapsedMs: elapsed })
-  }, [placed, bankOrder, hints, elapsed, solved, onSave])
+    if (!solved && !complete) onSave({ placed, bankOrder, hints, elapsedMs: elapsed })
+  }, [placed, bankOrder, hints, elapsed, solved, complete, onSave])
 
   // ---------- moves ----------
 
@@ -182,6 +184,10 @@ export default function Game(props: Props) {
     const next = placed.slice()
     next[slot] = null
     commit(next)
+  }
+
+  const erase = () => {
+    if (selected !== null) removeTile(selected)
   }
 
   const undo = () => {
@@ -471,7 +477,15 @@ export default function Game(props: Props) {
           <Icon name="undo" />
           <span>Undo</span>
         </button>
-        <div className="spacer" />
+        <button
+          className="tool"
+          onClick={erase}
+          disabled={solved || selected === null || placed[selected] === null}
+          aria-label="Erase selected square"
+        >
+          <Icon name="erase" />
+          <span>Erase</span>
+        </button>
         {solved ? (
           <button className="tool next" onClick={props.onNext}>
             <span>{props.nextLabel}</span>

@@ -38,6 +38,8 @@ export interface Progress {
   levels: Record<string, Result>
   daily: Record<string, Result>
   streak: { count: number; lastDate: string }
+  /** Difficulty of the last level opened, for the Continue button. */
+  lastDiff?: Difficulty
 }
 const DEFAULT_PROGRESS: Progress = {
   next: { easy: 1, medium: 1, hard: 1 },
@@ -73,8 +75,10 @@ export function saveGameFor(key: string, g: SavedGame | null) {
     .slice(0, 8)
   write('mc.games', Object.fromEntries(keep))
 }
-export function latestGame(): [string, SavedGame] | null {
-  const entries = Object.entries(loadGames()).sort((a, b) => b[1].updated - a[1].updated)
+export function latestGame(isSolved: (key: string) => boolean): [string, SavedGame] | null {
+  const entries = Object.entries(loadGames())
+    .filter(([key]) => !isSolved(key))
+    .sort((a, b) => b[1].updated - a[1].updated)
   return entries[0] ?? null
 }
 

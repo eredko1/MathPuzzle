@@ -74,6 +74,7 @@ export default function App() {
 
   const open = (key: string, replace = false) => {
     const { diff, level, date } = parseKey(key)
+    if (level && progress.lastDiff !== diff) updateProgress(p => ({ ...p, lastDiff: diff }))
     const saved = loadGames()[key]
     const puzzle = saved?.puzzle ?? generatePuzzle(key, diff)
     const initial: GameState = saved
@@ -186,7 +187,12 @@ function Home(props: {
   onSettings: () => void
 }) {
   const { progress, today } = props
-  const latest = latestGame()
+  const unfinished = latestGame(k => Boolean(progress.levels[k] || progress.daily[k]))
+  const continueTo: [string, string] | null = unfinished
+    ? [unfinished[0], unfinished[1].label]
+    : progress.lastDiff
+      ? [levelKey(progress.lastDiff, progress.next[progress.lastDiff]), labelFor(progress.lastDiff, progress.next[progress.lastDiff])]
+      : null
   const streakAlive = progress.streak.lastDate === today ||
     progress.streak.lastDate === todayString(new Date(Date.now() - 86400000))
   const streak = streakAlive ? progress.streak.count : 0
@@ -200,11 +206,11 @@ function Home(props: {
         </button>
       </header>
 
-      {latest && (
-        <button className="card continue" onClick={() => props.onContinue(latest[0])}>
+      {continueTo && (
+        <button className="card continue" onClick={() => props.onContinue(continueTo[0])}>
           <div>
             <div className="card-kicker">Continue</div>
-            <div className="card-title">{latest[1].label}</div>
+            <div className="card-title">{continueTo[1]}</div>
           </div>
           <Icon name="next" />
         </button>
@@ -214,7 +220,6 @@ function Home(props: {
         <h2>Play</h2>
         <div className="diff-list">
           {DIFFS.map(d => {
-            const solved = Object.keys(progress.levels).filter(k => k.startsWith(`level:${d}:`)).length
             return (
               <div key={d} className={`diff-card ${d}`}>
                 <button className="diff-main" onClick={() => props.onPlay(d)}>
@@ -223,7 +228,7 @@ function Home(props: {
                 </button>
                 <button className="diff-all" onClick={() => props.onLevels(d)} aria-label={`All ${NAMES[d]} levels`}>
                   <Icon name="grid" />
-                  <span>{solved} done</span>
+                  <span>Levels</span>
                 </button>
               </div>
             )
@@ -369,7 +374,7 @@ function SettingsModal({ settings, onChange, onClose }: { settings: Settings; on
         <div className="how">
           <h3>How to play</h3>
           <p>Fill every empty square with a number from the tiles below so that every equation is true — across and down.</p>
-          <p>Tap a square, then tap a number. Or drag a number onto a square. Tap a filled square twice, or drag it off the board, to take the number back.</p>
+          <p>Tap a square, then tap a number. Or drag a number onto a square. To take a number back, tap its square and press Erase (or drag it off the board).</p>
           <p>Each equation is just two numbers, one sign, and the answer. Stuck? The hint button is free and unlimited.</p>
         </div>
       </div>

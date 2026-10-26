@@ -47,6 +47,12 @@ const paths: Record<string, React.ReactNode> = {
       <rect x="14" y="14" width="7" height="7" rx="1" />
     </>
   ),
+  erase: (
+    <>
+      <path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z" />
+      <path d="M17 9l-5 6M12 9l5 6" />
+    </>
+  ),
   check: <path d="M20 6L9 17l-5-5" />,
   close: <path d="M18 6L6 18M6 6l12 12" />,
   flame: <path d="M12 2s5 4.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 1.5-4S9 11 11 11c0-4 1-9 1-9z" />,
