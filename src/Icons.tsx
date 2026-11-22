@@ -54,6 +54,19 @@ const paths: Record<string, React.ReactNode> = {
     </>
   ),
   check: <path d="M20 6L9 17l-5-5" />,
+  flag: <path d="M5 21V4m0 0h11l-2.5 4L16 12H5" />,
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
+  trophy: (
+    <>
+      <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" />
+      <path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" />
+    </>
+  ),
   close: <path d="M18 6L6 18M6 6l12 12" />,
   flame: <path d="M12 2s5 4.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 1.5-4S9 11 11 11c0-4 1-9 1-9z" />,
 }
