@@ -13,6 +13,7 @@ An ad-free puzzle app with two modes. It's an installable PWA that works offline
 - `npm run dev`: local dev server
 - `npm run build`: production build into `dist/`
 - `npm run verify`: stress-tests the crossword generator
+- `npx tsx scripts/pool-size.ts [N]`: estimates how many distinct questions each subject can produce and checks 5 years of daily play for repeats
 - `npm run verify:test [N]`: validates the SAT pools, test construction and scoring calibration
 - `npm run verify:quiz [N]`: validates the quiz engine (structure, LaTeX renders, numeric cross-checks, determinism, 2-year coverage)
 - `npx tsx scripts/print.ts medium some-key`: print a generated crossword as text

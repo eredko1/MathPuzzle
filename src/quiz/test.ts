@@ -44,12 +44,14 @@ function candidates(section: SatSection, tier: Level): Cand[] {
   return [...gens, ...bank]
 }
 
-function pickSection(section: SatSection, k: number, rng: Rng, used: Set<string>): TestItem[] {
+function pickSection(section: SatSection, k: number, rng: Rng, used: Set<string>, avoid?: (prompt: string) => boolean): TestItem[] {
   const out: TestItem[] = []
   for (const tier of tierPlan(k)) {
     const pool = shuffle(rng, candidates(section, tier))
-    let chosen = pool.find(c => !used.has(`t:${c.topic}`) && !(c.item && used.has(`p:${c.item.q}`)))
-    chosen ??= pool.find(c => !(c.item && used.has(`p:${c.item.q}`))) ?? pool[0]
+    const fresh = (c: Cand) => !(c.item && (used.has(`p:${c.item.q}`) || avoid?.(c.item.q)))
+    const unused = (c: Cand) => !(c.item && used.has(`p:${c.item.q}`))
+    let chosen = pool.find(c => !used.has(`t:${c.topic}`) && fresh(c))
+    chosen ??= pool.find(fresh) ?? pool.find(unused) ?? pool[0]
     used.add(`t:${chosen.topic}`)
     let q: Question
     if (chosen.item) {
@@ -60,7 +62,7 @@ function pickSection(section: SatSection, k: number, rng: Rng, used: Set<string>
     } else {
       // regenerate until this exact prompt hasn't appeared in the test yet
       let spec = chosen.gen!.make(rng)
-      for (let i = 0; i < 8 && used.has(`p:${spec.prompt}`); i++) spec = chosen.gen!.make(rng)
+      for (let i = 0; i < 12 && (used.has(`p:${spec.prompt}`) || avoid?.(spec.prompt)); i++) spec = chosen.gen!.make(rng)
       used.add(`p:${spec.prompt}`)
       q = build(rng, section === 'math' ? 'math' : 'english', tier, spec)
     }
@@ -71,11 +73,11 @@ function pickSection(section: SatSection, k: number, rng: Rng, used: Set<string>
 }
 
 /** Build an n-question SAT-style test: Reading & Writing first, then Math, easy → hard within each. */
-export function buildSatTest(n: number, seed = `sat:${Date.now()}:${Math.floor(Math.random() * 1e9)}`): TestItem[] {
+export function buildSatTest(n: number, seed = `sat:${Date.now()}:${Math.floor(Math.random() * 1e9)}`, avoid?: (prompt: string) => boolean): TestItem[] {
   const rng = rngFor(seed)
   const used = new Set<string>()
   const rwN = Math.ceil(n / 2)
-  const items = [...pickSection('rw', rwN, rng, used), ...pickSection('math', n - rwN, rng, used)]
+  const items = [...pickSection('rw', rwN, rng, used, avoid), ...pickSection('math', n - rwN, rng, used, avoid)]
   items.forEach((it, i) => (it.q.id = `${seed}|${i}`))
   return items
 }

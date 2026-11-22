@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from './Icons'
 import Rich from './Rich'
 import {
-  LEVELS, LEVEL_NAMES, SUBJECTS, SUBJECT_INFO, dailyPick, decodePick, makeQuestion, practicePick, topicsFor,
+  LEVELS, LEVEL_NAMES, SUBJECTS, SUBJECT_INFO, dailyPick, decodePick, freshPractice, makeQuestion, topicsFor,
   type Level, type Pick, type Question, type Subject,
 } from './quiz'
+import { hasSeen, markSeen } from './quiz/seen'
 import { hashString } from './quiz/util'
 import { TestResult, TestRun, TestSetup } from './Test'
 import { buildSatTest, scoreSat, type SatResult, type TestItem } from './quiz/test'
@@ -52,7 +53,8 @@ export default function QuizApp(props: { mode: Mode; onMode: (m: Mode) => void; 
     })
   }, [])
   const startTest = (n: number, timed: boolean) => {
-    const items = buildSatTest(n)
+    const items = buildSatTest(n, undefined, hasSeen)
+    items.forEach(it => markSeen(it.q.prompt))
     const state: TestInProgress = { kind: 'sat', n, timed, items, answers: items.map(() => null), flagged: items.map(() => false), index: 0, elapsed: 0 }
     saveTestCurrent(state)
     setCurrent(state)
@@ -161,7 +163,7 @@ export default function QuizApp(props: { mode: Mode; onMode: (m: Mode) => void; 
             const left = SUBJECTS.find(s => !progress.daily[today]?.[s] && s !== cur.subject)
             if (left) setScreen({ name: 'play', pick: dailyPick(today, left), daily: true })
             else goHome()
-          } else setScreen({ name: 'play', pick: practicePick(cur.subject, cur.level, cur.topic), daily: false })
+          } else setScreen({ name: 'play', pick: freshPractice(cur.subject, cur.level, cur.topic, hasSeen), daily: false })
         }}
         onHome={goHome}
       />
@@ -171,7 +173,7 @@ export default function QuizApp(props: { mode: Mode; onMode: (m: Mode) => void; 
       <Stats
         progress={progress}
         onBack={goHome}
-        onPractice={(subject, topic) => go({ name: 'play', pick: practicePick(subject, 2, topic), daily: false })}
+        onPractice={(subject, topic) => go({ name: 'play', pick: freshPractice(subject, 2, topic, hasSeen), daily: false })}
       />
     )
   return (
@@ -182,7 +184,7 @@ export default function QuizApp(props: { mode: Mode; onMode: (m: Mode) => void; 
       onMode={props.onMode}
       onSettings={props.onSettings}
       onDaily={s => go({ name: 'play', pick: dailyPick(today, s), daily: true })}
-      onPractice={(s, l) => go({ name: 'play', pick: practicePick(s, l), daily: false })}
+      onPractice={(s, l) => go({ name: 'play', pick: freshPractice(s, l, undefined, hasSeen), daily: false })}
       onStats={() => go({ name: 'stats' })}
       onTest={() => go({ name: 'testSetup' })}
       testInProgress={current !== null}
@@ -339,6 +341,7 @@ function QuestionScreen(props: {
 }) {
   const q = useMemo(() => makeQuestion(props.pick), [props.pick])
   const info = SUBJECT_INFO[q.subject]
+  useEffect(() => markSeen(q.prompt), [q])
   const already = props.daily ? props.progress.daily[props.today]?.[q.subject] : undefined
   const [wrong, setWrong] = useState<number[]>([])
   const [hints, setHints] = useState(0)
