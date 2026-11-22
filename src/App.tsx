@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import Game, { starsFor, type GameState } from './Game'
 import { Icon } from './Icons'
+import QuizApp, { ModeSwitch } from './Quiz'
 import { dailyKey, generatePuzzle, levelKey, type Difficulty, type Puzzle } from './engine/puzzle'
 import {
-  formatTime, latestGame, loadGames, loadProgress, loadSettings, saveGameFor, saveProgress, saveSettings,
-  todayString, type Progress, type Settings,
+  formatTime, latestGame, loadGames, loadMode, loadProgress, loadSettings, saveGameFor, saveMode, saveProgress, saveSettings,
+  todayString, type Mode, type Progress, type Settings,
 } from './storage'
 
 const DIFFS: Difficulty[] = ['easy', 'medium', 'hard']
@@ -41,6 +42,12 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' })
   const [showSettings, setShowSettings] = useState(false)
   const [install, setInstall] = useState<InstallPrompt | null>(null)
+  const [mode, setModeState] = useState<Mode>(loadMode)
+  const setMode = (m: Mode) => {
+    saveMode(m)
+    setScreen({ name: 'home' })
+    setModeState(m)
+  }
 
   useEffect(() => {
     document.documentElement.dataset.theme = settings.theme
@@ -127,7 +134,8 @@ export default function App() {
 
   return (
     <>
-      {screen.name === 'home' && (
+      {mode === 'quiz' && <QuizApp mode={mode} onMode={setMode} onSettings={() => setShowSettings(true)} />}
+      {mode === 'puzzles' && screen.name === 'home' && (
         <Home
           progress={progress}
           today={today}
@@ -138,9 +146,11 @@ export default function App() {
           onContinue={k => open(k)}
           onLevels={d => go({ name: 'levels', diff: d })}
           onSettings={() => setShowSettings(true)}
+          mode={mode}
+          onMode={setMode}
         />
       )}
-      {screen.name === 'levels' && (
+      {mode === 'puzzles' && screen.name === 'levels' && (
         <Levels
           diff={screen.diff}
           progress={progress}
@@ -149,7 +159,7 @@ export default function App() {
           onBack={goHome}
         />
       )}
-      {game && (
+      {mode === 'puzzles' && game && (
         <Game
           key={game.key}
           puzzle={game.puzzle}
@@ -185,6 +195,8 @@ function Home(props: {
   onContinue: (key: string) => void
   onLevels: (d: Difficulty) => void
   onSettings: () => void
+  mode: Mode
+  onMode: (m: Mode) => void
 }) {
   const { progress, today } = props
   const unfinished = latestGame(k => Boolean(progress.levels[k] || progress.daily[k]))
@@ -205,6 +217,7 @@ function Home(props: {
           <Icon name="settings" />
         </button>
       </header>
+      <ModeSwitch mode={props.mode} onChange={props.onMode} />
 
       {continueTo && (
         <button className="card continue" onClick={() => props.onContinue(continueTo[0])}>

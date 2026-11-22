@@ -114,7 +114,7 @@ export default function Game(props: Props) {
       setSelected(null)
       props.onSolved({ placed, bankOrder, hints, elapsedMs: elapsed })
       import('canvas-confetti').then(({ default: confetti }) => {
-        confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 }, colors: ['#F5E6AD', '#188038', '#F59E0B', '#60A5FA'] })
+        confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 }, disableForReducedMotion: true, colors: ['#F5E6AD', '#188038', '#F59E0B', '#60A5FA'] })
       })
       const t = setTimeout(() => setShowWin(true), 900)
       return () => clearTimeout(t)
@@ -364,12 +364,13 @@ export default function Game(props: Props) {
       const n = puzzle.bank.length
       const cols = Math.min(Math.max(Math.ceil(n / 3), 6), bw < 380 ? 8 : 10)
       setBankCols(cols)
-      const ts = Math.min(56, Math.floor((bw - (cols - 1) * 6) / cols))
+      const big = Math.min(window.innerWidth, window.innerHeight) >= 700 // tablets / desktops get larger tiles
+      const ts = Math.min(big ? 68 : 56, Math.floor((bw - (cols - 1) * 6) / cols))
       setTileSize(ts)
       const el = boardWrap.current
       if (!el) return
       const size = Math.floor(Math.min((el.clientWidth - 40) / puzzle.cols, (el.clientHeight - 40) / puzzle.rows))
-      setCellSize(Math.max(18, Math.min(size, 58)))
+      setCellSize(Math.max(18, Math.min(size, big ? 80 : 58)))
     }
     measure()
     const ro = new ResizeObserver(measure)

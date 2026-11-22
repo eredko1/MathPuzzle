@@ -1,4 +1,5 @@
 import type { Difficulty, Puzzle } from './engine/puzzle'
+import type { Level, Subject } from './quiz/types'
 
 // localStorage can be unavailable (private mode, blocked storage) — never let that break the game.
 function read<T>(key: string, fallback: T): T {
@@ -93,4 +94,48 @@ export function formatTime(ms: number) {
   const s = Math.floor(ms / 1000)
   const m = Math.floor(s / 60)
   return `${String(m).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+}
+
+// ---------- Quiz ----------
+
+export interface QuizResult {
+  /** 0–3 points: 3 = first try, no hints. */
+  points: number
+  tries: number
+  hints: number
+  solved: boolean
+  topic: string
+  level: Level
+}
+export interface TopicStat {
+  seen: number
+  points: number
+}
+export interface QuizProgress {
+  /** date → subject → result for the daily set. */
+  daily: Record<string, Partial<Record<Subject, QuizResult>>>
+  streak: { count: number; lastDate: string }
+  /** "subject|topic" → running totals, drives weak-spot practice. */
+  topics: Record<string, TopicStat>
+  answered: number
+  totalPoints: number
+}
+const DEFAULT_QUIZ: QuizProgress = { daily: {}, streak: { count: 0, lastDate: '' }, topics: {}, answered: 0, totalPoints: 0 }
+export const loadQuiz = () => read('mc.quiz', DEFAULT_QUIZ)
+export const saveQuiz = (q: QuizProgress) => write('mc.quiz', q)
+
+export type Mode = 'puzzles' | 'quiz'
+export const loadMode = (): Mode => {
+  try {
+    return localStorage.getItem('mc.mode') === 'quiz' ? 'quiz' : 'puzzles'
+  } catch {
+    return 'puzzles'
+  }
+}
+export const saveMode = (m: Mode) => {
+  try {
+    localStorage.setItem('mc.mode', m)
+  } catch {
+    /* ignore */
+  }
 }
