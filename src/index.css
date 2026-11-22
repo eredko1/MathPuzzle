@@ -704,7 +704,7 @@ button {
   border-radius: 10px;
   padding: 9px;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--muted);
 }
 .mode-switch button.active {
@@ -714,7 +714,8 @@ button {
 }
 .subject-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* as many 6.5rem+ columns as fit: 3 on phones, 2 on folded screens, 6 on tablets, 1-2 at huge text sizes */
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
   gap: 10px;
 }
 .subject-card {
@@ -743,20 +744,20 @@ button {
   display: grid;
   place-items: center;
   font-weight: 800;
-  font-size: 18px;
+  font-size: 1.125rem;
   color: var(--sc);
   background: color-mix(in srgb, var(--sc) 14%, transparent);
 }
 .subject-name {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .subject-sub {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 .lvl-pill {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 999px;
@@ -778,7 +779,7 @@ button {
 .set-summary,
 .subject-blurb {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   margin: 10px 2px 0;
 }
 .chip-row {
@@ -792,7 +793,7 @@ button {
   border-radius: 999px;
   padding: 8px 14px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .chip.active {
   background: var(--sc);
@@ -811,7 +812,7 @@ button {
   border-radius: 14px;
   padding: 14px 6px;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 1rem;
   box-shadow: var(--shadow);
 }
 .lvl-btn.easy { border-left: 6px solid #7cc893; }
@@ -839,7 +840,7 @@ button {
   box-shadow: var(--shadow);
 }
 .qprompt {
-  font-size: 19px;
+  font-size: 1.1875rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -859,7 +860,7 @@ button {
   border-radius: 10px;
   padding: 10px 12px;
   overflow-x: auto;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
   margin: 8px 0;
   white-space: pre;
@@ -891,7 +892,7 @@ code {
   border: 2px solid var(--panel-border);
   background: var(--panel);
   border-radius: 14px;
-  font-size: 17px;
+  font-size: 1.0625rem;
   box-shadow: var(--shadow);
 }
 .choice:not(:disabled):active {
@@ -907,7 +908,7 @@ code {
   display: grid;
   place-items: center;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   flex-shrink: 0;
   color: var(--muted);
 }
@@ -947,7 +948,7 @@ code {
   border-radius: 14px;
   padding: 12px 14px;
   margin-bottom: 10px;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.45;
 }
 .hint-box .icon {
@@ -958,7 +959,7 @@ code {
 .hint-box.subtle {
   background: var(--slot-bg);
   color: var(--muted);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .qactions {
   display: flex;
@@ -968,7 +969,7 @@ code {
   flex: 1;
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  font-size: 16px;
+  font-size: 1rem;
   padding: 12px;
   display: inline-flex;
   align-items: center;
@@ -987,7 +988,7 @@ code {
   align-items: center;
   gap: 10px;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 1.25rem;
   margin-bottom: 10px;
 }
 .reveal-head.right { color: var(--accent); }
@@ -999,10 +1000,10 @@ code {
   padding: 12px 14px;
   margin-bottom: 14px;
   line-height: 1.5;
-  font-size: 16px;
+  font-size: 1rem;
 }
 .explain-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--muted);
@@ -1034,7 +1035,7 @@ code {
 }
 .stat-num {
   color: var(--muted);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .bar {
   height: 8px;
@@ -1057,7 +1058,7 @@ code {
   background: var(--slot-bg);
   border-radius: 999px;
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   display: inline-flex;
   gap: 6px;
@@ -1066,4 +1067,141 @@ code {
 .topic-chip small {
   color: var(--muted);
   font-weight: 500;
+}
+
+/* ================= responsive & accessibility ================= */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { touch-action: manipulation; } /* keep pinch-zoom, drop double-tap-zoom delay */
+
+/* Notches, rounded corners and landscape side cut-outs */
+.page {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+.page .topbar {
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+
+/* Touch targets: at least 44px */
+.mode-switch button { min-height: 44px; }
+.chip { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 16px; }
+.topic-chip { min-height: 40px; align-items: center; }
+.lvl-btn { min-height: 48px; }
+@media (pointer: coarse) {
+  .topic-chip { min-height: 44px; }
+}
+
+/* Keyboard focus */
+button:focus-visible,
+.choice:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--select);
+  outline-offset: 2px;
+}
+
+/* Hover only where a pointer can really hover */
+@media (hover: hover) and (pointer: fine) {
+  .choice:not(:disabled):hover { border-color: var(--select); background: var(--select-bg); }
+  .subject-card:hover, .lvl-btn:hover, .stat-row:hover, .stats-card:hover { border-color: var(--select); }
+  .chip:not(.active):hover, .topic-chip:hover { border-color: var(--select); background: var(--select-bg); }
+  .mode-switch button:not(.active):hover { color: var(--text); }
+}
+
+/* Math, code and long text can scroll sideways inside their own box instead of widening the page */
+.qcard, .explain, .hint-box > span, .choice-text { overflow-x: auto; overflow-y: hidden; }
+.qcard { scrollbar-width: thin; }
+.choice-text { overflow-y: visible; }
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Question layout: single column by default (.qbody children simply stack) */
+.qbody { display: block; }
+
+/* ---- very narrow: foldable cover screens, split-screen, 200% zoom ---- */
+@media (max-width: 339px) {
+  .page { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+  .level-row { gap: 6px; }
+  .qprompt { font-size: 1.05rem; }
+  .choice { gap: 8px; padding: 8px 10px; }
+  .home-head h1 { font-size: 1.25rem; }
+}
+
+/* ---- tablets and up: roomier column, bigger type, six subjects in one row ---- */
+@media (min-width: 700px) {
+  .page { max-width: 760px; }
+  .page .home-head h1 { font-size: 1.75rem; }
+  .subject-grid { gap: 12px; }
+  .subject-card { padding: 14px 6px 12px; }
+  .qprompt { font-size: 1.35rem; line-height: 1.55; }
+  .qcard { padding: 22px 24px; }
+  .choice { font-size: 1.15rem; min-height: 62px; padding: 12px 18px; }
+  .choice-key { width: 32px; height: 32px; }
+  .explain, .hint-box { font-size: 1.05rem; }
+  .btn.big { max-width: 420px; margin-inline: auto; display: block; }
+}
+
+/* ---- desktops / big landscape tablets: prompt on the left, answers on the right ---- */
+@media (min-width: 1000px) and (min-height: 600px) {
+  .qpage { max-width: 1120px; }
+  .qbody {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  .qleft { position: sticky; top: 12px; }
+  .qcard { margin-top: 0; }
+  .qprompt { font-size: 1.5rem; }
+  .reveal { margin-top: 18px; }
+}
+
+/* ---- landscape phones & short windows: use the width, avoid scrolling ---- */
+@media (orientation: landscape) and (max-height: 560px) and (min-width: 560px) {
+  .page { max-width: 1000px; }
+  .qpage { max-width: 1000px; }
+  .qbody {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .qleft { position: sticky; top: 4px; }
+  .qcard { margin: 4px 0 8px; padding: 12px 14px; }
+  .qprompt { font-size: 1.05rem; line-height: 1.45; }
+  .choices { gap: 8px; }
+  .choice { min-height: 48px; font-size: 1rem; padding: 6px 12px; }
+  .hint-area { margin-top: 8px; }
+  .reveal { margin-top: 10px; }
+  .explain { margin-bottom: 8px; font-size: 0.95rem; }
+  .subject-grid { gap: 8px; }
+  .subject-card { min-height: 100px; padding: 8px 4px; }
+  .home-head { padding-top: 8px; }
+  .page h2 { margin-top: 14px; }
+}
+
+/* ---- crossword game: board left, tiles + tools right in landscape ---- */
+@media (orientation: landscape) and (min-width: 520px) {
+  .game {
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 40%);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'top top'
+      'board bank'
+      'board tools';
+  }
+  .game > .topbar { grid-area: top; }
+  .game > .board-wrap { grid-area: board; }
+  .game > .bank-wrap { grid-area: bank; align-self: center; overflow: auto; max-height: 100%; }
+  .game > .toolbar { grid-area: tools; }
 }

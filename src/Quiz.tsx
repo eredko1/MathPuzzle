@@ -311,11 +311,15 @@ function QuestionScreen(props: {
         <span className={`lvl-pill ${LEVEL_CLASS[q.level]}`}>{LEVEL_NAMES[q.level]}</span>
       </header>
 
-      <div className="qcard">
-        <Rich text={q.prompt} className="qprompt" />
+      <div className="qbody">
+      <div className="qleft">
+        <div className="qcard">
+          <Rich text={q.prompt} className="qprompt" />
+        </div>
       </div>
 
-      <div className="choices">
+      <div className="qright">
+      <div className="choices" role="group" aria-label="Answer choices">
         {q.choices.map((c, i) => {
           const isWrong = wrong.includes(i)
           const isElim = hints >= 2 && eliminated.includes(i) && !solved
@@ -362,7 +366,7 @@ function QuestionScreen(props: {
 
       {solved && (
         <div className="reveal">
-          <div className={`reveal-head ${solved}`}>
+          <div className={`reveal-head ${solved}`} role="status" aria-live="polite">
             {solved === 'right' ? (
               <>
                 <Stars n={already?.points ?? points} />
@@ -381,6 +385,8 @@ function QuestionScreen(props: {
           </button>
         </div>
       )}
+      </div>
+      </div>
     </div>
   )
 }
