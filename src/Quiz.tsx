@@ -6,12 +6,20 @@ import {
   type Level, type Pick, type Question, type Subject,
 } from './quiz'
 import { hashString } from './quiz/util'
-import { loadQuiz, saveQuiz, todayString, type Mode, type QuizProgress, type QuizResult } from './storage'
+import { TestResult, TestRun, TestSetup } from './Test'
+import { buildSatTest, scoreSat, type SatResult, type TestItem } from './quiz/test'
+import {
+  loadQuiz, loadTestCurrent, loadTests, saveQuiz, saveTestCurrent, saveTests, todayString,
+  type Mode, type QuizProgress, type QuizResult, type TestInProgress, type TestRecord,
+} from './storage'
 
 type Screen =
   | { name: 'home' }
   | { name: 'stats' }
   | { name: 'play'; pick: Pick; daily: boolean }
+  | { name: 'testSetup' }
+  | { name: 'test' }
+  | { name: 'testResult'; items: TestItem[]; answers: (number | null)[]; result: SatResult; seconds: number; timed: boolean }
 
 const LEVEL_CLASS: Record<Level, string> = { 1: 'easy', 2: 'medium', 3: 'hard' }
 
@@ -31,7 +39,39 @@ export function ModeSwitch({ mode, onChange }: { mode: Mode; onChange: (m: Mode)
 export default function QuizApp(props: { mode: Mode; onMode: (m: Mode) => void; onSettings: () => void }) {
   const [progress, setProgress] = useState<QuizProgress>(loadQuiz)
   const [screen, setScreen] = useState<Screen>({ name: 'home' })
+  const [tests, setTests] = useState<TestRecord[]>(loadTests)
+  const [current, setCurrent] = useState<TestInProgress | null>(loadTestCurrent)
   const today = todayString()
+
+  const updateCurrent = useCallback((fn: (s: TestInProgress) => TestInProgress) => {
+    setCurrent(prev => {
+      if (!prev) return prev
+      const next = fn(prev)
+      saveTestCurrent(next)
+      return next
+    })
+  }, [])
+  const startTest = (n: number, timed: boolean) => {
+    const items = buildSatTest(n)
+    const state: TestInProgress = { kind: 'sat', n, timed, items, answers: items.map(() => null), flagged: items.map(() => false), index: 0, elapsed: 0 }
+    saveTestCurrent(state)
+    setCurrent(state)
+    setScreen({ name: 'test' })
+  }
+  const submitTest = () => {
+    if (!current) return
+    const result = scoreSat(current.items, current.answers)
+    const rec: TestRecord = {
+      t: Date.now(), kind: 'sat', n: current.n, total: result.total, rw: result.sections[0].score, math: result.sections[1].score,
+      percentile: result.percentile, correct: result.correct, timed: current.timed, seconds: current.elapsed,
+    }
+    const all = [...tests, rec]
+    setTests(all)
+    saveTests(all)
+    saveTestCurrent(null)
+    setCurrent(null)
+    setScreen({ name: 'testResult', items: current.items, answers: current.answers, result, seconds: current.elapsed, timed: current.timed })
+  }
 
   const update = useCallback((fn: (p: QuizProgress) => void) => {
     setProgress(prev => {
@@ -78,6 +118,34 @@ export default function QuizApp(props: { mode: Mode; onMode: (m: Mode) => void; 
     })
   }
 
+  if (screen.name === 'testSetup')
+    return (
+      <TestSetup
+        history={tests}
+        resume={current}
+        onStart={startTest}
+        onResume={() => setScreen({ name: 'test' })}
+        onDiscard={() => {
+          saveTestCurrent(null)
+          setCurrent(null)
+        }}
+        onBack={goHome}
+      />
+    )
+  if (screen.name === 'test' && current)
+    return <TestRun key={current.items[0].q.id} state={current} setState={updateCurrent} onSubmit={submitTest} onExit={goHome} />
+  if (screen.name === 'testResult')
+    return (
+      <TestResult
+        items={screen.items}
+        answers={screen.answers}
+        result={screen.result}
+        seconds={screen.seconds}
+        timed={screen.timed}
+        onAgain={() => setScreen({ name: 'testSetup' })}
+        onHome={goHome}
+      />
+    )
   if (screen.name === 'play')
     return (
       <QuestionScreen
@@ -116,6 +184,9 @@ export default function QuizApp(props: { mode: Mode; onMode: (m: Mode) => void; 
       onDaily={s => go({ name: 'play', pick: dailyPick(today, s), daily: true })}
       onPractice={(s, l) => go({ name: 'play', pick: practicePick(s, l), daily: false })}
       onStats={() => go({ name: 'stats' })}
+      onTest={() => go({ name: 'testSetup' })}
+      testInProgress={current !== null}
+      bestScore={tests.reduce((m, r) => Math.max(m, r.total), 0)}
     />
   )
 }
@@ -131,6 +202,9 @@ function QuizHome(props: {
   onDaily: (s: Subject) => void
   onPractice: (s: Subject, l: Level) => void
   onStats: () => void
+  onTest: () => void
+  testInProgress: boolean
+  bestScore: number
 }) {
   const { progress, today } = props
   const [subject, setSubject] = useState<Subject>('math')
@@ -192,6 +266,15 @@ function QuizHome(props: {
           {done === SUBJECTS.length ? 'All done for today — nice work. Come back tomorrow, or practice below.' : `${pts} point${pts === 1 ? '' : 's'} so far today`}
         </p>
       </section>
+
+      <button className="card sat-card" onClick={props.onTest}>
+        <div>
+          <div className="card-kicker">{props.testInProgress ? 'Unfinished — tap to resume' : props.bestScore ? `Best so far: ${props.bestScore}` : 'New'}</div>
+          <div className="card-title">SAT Practice Test</div>
+          <div className="card-sub">5–20 questions · estimated score &amp; percentile</div>
+        </div>
+        <Icon name="next" />
+      </button>
 
       <section>
         <h2>Practice</h2>

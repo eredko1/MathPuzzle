@@ -1,51 +1,13 @@
 // Stress-tests the quiz engine: structural validity, LaTeX renders, numeric cross-checks,
 // and how many distinct questions a player would see across two years of daily play.
-import katex from 'katex'
 import { SUBJECTS, dailyPick, makeQuestion, practicePick, topicsFor } from '../src/quiz'
 import { GENS } from '../src/quiz/gen'
 import { BANKS } from '../src/quiz/bank'
-import { tokenize } from '../src/quiz/rich'
 import { rngFor } from '../src/quiz/util'
 import type { Level, Question } from '../src/quiz/types'
+import { fail, state, validate } from './validate'
 
 const N = Number(process.argv[2] ?? 300)
-let bad = 0
-const fail = (q: Question | null, msg: string) => {
-  bad++
-  if (bad <= 40) console.log(`FAIL [${q?.subject}/${q?.topic}/L${q?.level}] ${msg}\n   ${q?.prompt.slice(0, 160)}`)
-}
-
-function validate(q: Question) {
-  if (q.choices.length !== 4) fail(q, 'need 4 choices')
-  if (new Set(q.choices).size !== 4) fail(q, `duplicate choices: ${q.choices.join(' | ')}`)
-  if (q.answer < 0 || q.answer > 3) fail(q, 'answer index out of range')
-  const text = [q.prompt, q.hint, q.explanation, ...q.choices].join('\n')
-  if (/NaN|undefined|Infinity|\[object|-0\b(?!\.)|\+ -|- -/.test(text)) fail(q, `suspicious text: ${text.match(/NaN|undefined|Infinity|\[object|-0\b|\+ -|- -/)![0]}`)
-  if (!q.hint || !q.explanation) fail(q, 'missing hint/explanation')
-  for (const s of [q.prompt, q.explanation, q.hint, ...q.choices]) {
-    for (const t of tokenize(s)) {
-      if (t.k === 'math') {
-        try {
-          let warned = ''
-          const w = console.warn
-          console.warn = (m: string) => (warned = String(m))
-          try {
-            katex.renderToString(t.s, { throwOnError: true, strict: 'ignore' })
-          } finally {
-            console.warn = w
-          }
-          if (warned) fail(q, `KaTeX warning: ${warned.slice(0, 100)} in «${t.s}»`)
-        } catch (e) {
-          fail(q, `KaTeX: ${(e as Error).message.slice(0, 120)} in «${t.s}»`)
-        }
-      }
-    }
-  }
-  if (q.check) {
-    const [a, b] = q.check
-    if (!(Math.abs(a - b) <= 1e-3 * Math.max(1, Math.abs(a)))) fail(q, `numeric mismatch: closed=${a} numeric=${b}`)
-  }
-}
 
 console.log(`Sampling ${N} questions per subject per level…`)
 for (const subject of SUBJECTS) {
@@ -113,5 +75,5 @@ import type { Spec, Rng } from '../src/quiz/types'
 function makeBuilt(subject: Question['subject'], level: Level, s: Spec, rng: Rng) {
   return build(rng, subject, level, s)
 }
-console.log(bad ? `\n${bad} problems found` : '\nAll checks passed')
-process.exit(bad ? 1 : 0)
+console.log(state.bad ? `\n${state.bad} problems found` : '\nAll checks passed')
+process.exit(state.bad ? 1 : 0)

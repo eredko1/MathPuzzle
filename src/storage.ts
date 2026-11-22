@@ -1,5 +1,6 @@
 import type { Difficulty, Puzzle } from './engine/puzzle'
 import type { Level, Subject } from './quiz/types'
+import type { TestItem } from './quiz/test'
 
 // localStorage can be unavailable (private mode, blocked storage) — never let that break the game.
 function read<T>(key: string, fallback: T): T {
@@ -135,6 +136,58 @@ export const loadMode = (): Mode => {
 export const saveMode = (m: Mode) => {
   try {
     localStorage.setItem('mc.mode', m)
+  } catch {
+    /* ignore */
+  }
+}
+
+// ---------- Test mode (SAT practice) ----------
+
+export interface TestRecord {
+  t: number
+  kind: 'sat'
+  n: number
+  total: number
+  rw: number
+  math: number
+  percentile: number
+  correct: number
+  timed: boolean
+  seconds: number
+}
+export const loadTests = (): TestRecord[] => {
+  try {
+    const v = JSON.parse(localStorage.getItem('mc.tests') ?? '[]')
+    return Array.isArray(v) ? v : []
+  } catch {
+    return []
+  }
+}
+export const saveTests = (r: TestRecord[]) => write('mc.tests', r.slice(-40))
+
+/** An unfinished test, so closing the app doesn't lose it. */
+export interface TestInProgress {
+  kind: 'sat'
+  n: number
+  timed: boolean
+  items: TestItem[]
+  answers: (number | null)[]
+  flagged: boolean[]
+  index: number
+  elapsed: number
+}
+export const loadTestCurrent = (): TestInProgress | null => {
+  try {
+    const v = JSON.parse(localStorage.getItem('mc.test.current') ?? 'null')
+    return v && Array.isArray(v.items) && v.items.length ? v : null
+  } catch {
+    return null
+  }
+}
+export const saveTestCurrent = (t: TestInProgress | null) => {
+  try {
+    if (t) localStorage.setItem('mc.test.current', JSON.stringify(t))
+    else localStorage.removeItem('mc.test.current')
   } catch {
     /* ignore */
   }

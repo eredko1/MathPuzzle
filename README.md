@@ -3,6 +3,7 @@
 An ad-free puzzle app with two modes. It's an installable PWA that works offline.
 
 - **Crosswords**: Crossmath-style math puzzles (easy / medium / hard, levels + daily).
+- **SAT Practice Test** (inside Daily Quiz): pick 5, 10, 15 or 20 questions (optionally timed at the real SAT pace) from a Reading & Writing + Math mix. Results show an estimated 400–1600 score with a likely range, section scores, a percentile and a full answer review. Scoring uses a simple item-response model (question difficulty + a guessing floor) mapped to the SAT scale; it is a practice estimate, not an official score. The test engine (`src/quiz/test.ts`, `src/Test.tsx`) is generic so other test kinds can reuse it.
 - **Daily Quiz**: a daily set of multiple-choice questions, one per subject (Math, English, Physics & Engineering,
   Chemistry, Biology, Computer Science), plus free practice by subject and difficulty. Every question has a
   two-step hint (a nudge, then a 50/50 eliminator) and an explanation. Progress and weak topics are tracked on-device.
@@ -12,6 +13,7 @@ An ad-free puzzle app with two modes. It's an installable PWA that works offline
 - `npm run dev`: local dev server
 - `npm run build`: production build into `dist/`
 - `npm run verify`: stress-tests the crossword generator
+- `npm run verify:test [N]`: validates the SAT pools, test construction and scoring calibration
 - `npm run verify:quiz [N]`: validates the quiz engine (structure, LaTeX renders, numeric cross-checks, determinism, 2-year coverage)
 - `npx tsx scripts/print.ts medium some-key`: print a generated crossword as text
 

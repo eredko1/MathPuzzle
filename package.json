@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "verify": "tsx scripts/verify-engine.ts",
     "preview": "vite preview",
-    "verify:quiz": "tsx scripts/verify-quiz.ts"
+    "verify:quiz": "tsx scripts/verify-quiz.ts",
+    "verify:test": "tsx scripts/verify-test.ts"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
