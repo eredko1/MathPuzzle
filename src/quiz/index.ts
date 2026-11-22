@@ -97,7 +97,7 @@ export function dailyPick(date: string, subject: Subject): Pick {
   while (h.picks.length <= d) {
     const day = dateOf(EPOCH + h.picks.length)
     let pick = basePick(day, subject, 0)
-    for (let attempt = 0; attempt < 12; attempt++) {
+    for (let attempt = 0; attempt < 80; attempt++) {
       pick = basePick(day, subject, attempt)
       if (!h.seen.has(makeQuestion(pick).prompt)) break
     }
@@ -110,6 +110,16 @@ export function dailyPick(date: string, subject: Subject): Pick {
 export function practicePick(subject: Subject, level: Level, topic?: string): Pick {
   const seed = `p:${Date.now()}:${Math.floor(Math.random() * 1e9)}`
   return { subject, level, seed, cursor: hashString(seed), topic }
+}
+
+/** A practice pick whose question this device hasn't seen yet (falls back to any once a pool is exhausted). */
+export function freshPractice(subject: Subject, level: Level, topic: string | undefined, isSeen: (prompt: string) => boolean): Pick {
+  let pick = practicePick(subject, level, topic)
+  for (let i = 0; i < 40; i++) {
+    if (!isSeen(makeQuestion(pick).prompt)) return pick
+    pick = practicePick(subject, level, topic)
+  }
+  return pick
 }
 
 /** All topics for a subject, for the weak-spot view. */
