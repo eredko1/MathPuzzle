@@ -219,7 +219,7 @@ function QuizHome(props: {
     <div className="page home quiz">
       <header className="home-head">
         <QuizLogo />
-        <h1>Daily Quiz</h1>
+        <h1>Math Quiz</h1>
         <button className="icon-btn" onClick={props.onSettings} aria-label="Settings">
           <Icon name="settings" />
         </button>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Math Quiz has moved</title>
+    <style>body{font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#f8f7f3;color:#1f2937;text-align:center}a{color:#2f6fe4}</style>
+  </head>
+  <body>
+    <p>Math Quiz has a new address. Taking you there…<br /><a id="go" href="https://math-quiz-neon.vercel.app/">Continue</a></p>
+    <script>
+      // The old address redirects to the new one, carrying saved progress in the URL fragment
+      // (saved data is per web address). The app imports it once (src/migrate.ts) and clears the fragment.
+      var TARGET = 'https://math-quiz-neon.vercel.app/'
+      var hash = ''
+      try {
+        var data = {}
+        ;['mc.progress', 'mc.settings', 'mc.quiz', 'mc.tests', 'mc.mode'].forEach(function (k) {
+          var v = localStorage.getItem(k)
+          if (v) data[k] = v
+        })
+        if (Object.keys(data).length) hash = '#migrate=' + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(data)))))
+      } catch (e) {}
+      document.getElementById('go').href = TARGET + hash
+      var jobs = []
+      if ('serviceWorker' in navigator) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister() })) }))
+      if (window.caches) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k) })) }))
+      var done = false
+      function go() { if (!done) { done = true; location.replace(TARGET + hash) } }
+      Promise.all(jobs).then(go, go)
+      setTimeout(go, 1500)
+    </script>
+  </body>
+</html>

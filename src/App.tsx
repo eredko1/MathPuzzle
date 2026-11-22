@@ -212,7 +212,7 @@ function Home(props: {
     <div className="page home">
       <header className="home-head">
         <Logo />
-        <h1>Math Crosswords</h1>
+        <h1>Math Quiz</h1>
         <button className="icon-btn" onClick={props.onSettings} aria-label="Settings">
           <Icon name="settings" />
         </button>
