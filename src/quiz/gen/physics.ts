@@ -12,7 +12,7 @@ const unit = (u: string) =>
         .replace(/μ/g, '}\\mu\\text{')
         .replace(/Ω/g, '}\\Omega\\text{')}}`
     : ''
-const Q = (x: number, u: string, sig = 3) => M(`${num(x, sig)}${unit(u)}`)
+const Q = (x: number, u: string, sig = 3) => M(`${num(x, sig)}${unit(u)}`.replace(/\\text\{\}$/, ''))
 /** Correct + plausible-wrong numeric options (common slips first, then scalings). */
 function opts(c: number, slips: number[], u: string, sig = 3) {
   const all = [...slips, c * 2, c / 2, c * 10, c / 10, c * 1.5, c * 0.5 ** 0.5, c * 4, c / 4]
@@ -48,10 +48,10 @@ export const physics: Gen[] = [
     const t = randInt(rng, 1, 6), h = 0.5 * G * t * t
     return {
       topic: 'Free fall',
-      prompt: `A ball is dropped from rest from a height of ${num(h)} m. Ignoring air resistance (g = 9.8 m/s²), how long does it take to hit the ground?`,
+      prompt: `A ball is dropped from rest from a height of ${num(h, 4)} m. Ignoring air resistance (g = 9.8 m/s²), how long does it take to hit the ground?`,
       ...opts(t, [h / G, Math.sqrt(h / G), 2 * t], 's'),
       hint: 'h = ½gt², so t = √(2h/g).',
-      explanation: `${M(`t = \\sqrt{2h/g} = \\sqrt{2(${num(h)})/9.8} = ${t}\\ \\text{s}`)}.`,
+      explanation: `${M(`t = \\sqrt{2h/g} = \\sqrt{2(${num(h, 4)})/9.8} = ${t}\\ \\text{s}`)}.`,
     }
   }),
   g(1, "Newton's laws", rng => {
@@ -538,6 +538,17 @@ export const physics: Gen[] = [
     }
   }),
   g(3, 'Decibels & filters', rng => {
+    if (rng() < 0.5) {
+      const ratio = pick(rng, [2, 4, 10, 100, 1000, 0.1, 0.5]), power = rng() < 0.5
+      const dB = (power ? 10 : 20) * Math.log10(ratio)
+      return {
+        topic: 'Decibels & filters',
+        prompt: `An amplifier changes a signal's ${power ? 'power' : 'voltage'} by a factor of ${ratio}. What is that in decibels?`,
+        ...opts(dB, [(power ? 20 : 10) * Math.log10(ratio), Math.log10(ratio), ratio, -dB], 'dB'),
+        hint: power ? 'Power: dB = 10 log₁₀(P₂/P₁).' : 'Voltage: dB = 20 log₁₀(V₂/V₁).',
+        explanation: `${M(`${power ? 10 : 20}\\log_{10}(${ratio}) = ${num(dB)}\\ \\text{dB}`)}.`,
+      }
+    }
     const R = randInt(rng, 1, 100), C = pick(rng, [1, 10, 100]), unit = pick(rng, ['nF', 'μF'])
     const Cf = C * (unit === 'nF' ? 1e-9 : 1e-6), Rf = R * 1e3
     const fc = 1 / (2 * Math.PI * Rf * Cf)

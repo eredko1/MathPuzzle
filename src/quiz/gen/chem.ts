@@ -6,7 +6,7 @@ const unit = (u: string) =>
   u
     ? `\\,\\text{${u.replace(/²/g, '}^2\\text{').replace(/³/g, '}^3\\text{').replace(/·/g, '}\\cdot\\text{').replace(/°/g, '}^\\circ\\text{').replace(/μ/g, '}\\mu\\text{')}}`
     : ''
-const Q = (x: number, u: string, sig = 3) => M(`${num(x, sig)}${u === '%' ? '\\,\\%' : unit(u)}`)
+const Q = (x: number, u: string, sig = 3) => M(`${num(x, sig)}${u === '%' ? '\\,\\%' : unit(u)}`.replace(/\\text\{\}/g, ''))
 function opts(c: number, slips: number[], u: string, sig = 3) {
   const all = [...slips, c * 2, c / 2, c * 10, c / 10, c * 1.5, c * 0.75, c + 1, c - 1]
   return { correct: Q(c, u, sig), wrong: all.filter(x => isFinite(x) && Q(x, u, sig) !== Q(c, u, sig)).map(x => Q(x, u, sig)) }
@@ -161,7 +161,7 @@ export const chem: Gen[] = [
     return {
       topic: 'Calorimetry',
       prompt: `${m} g of water is heated from 20.0 °C to ${20 + dT}.0 °C. How much heat does it absorb? (c = 4.184 J/g·°C)`,
-      ...opts(q, [m * 4.184, 4.184 * dT, m * dT, q / 1000 * 1000 * 2], 'J'),
+      ...opts(q, [m * 4.184, 4.184 * dT, m * dT, q * 2], 'J', 4),
       hint: 'q = mcΔT.',
       explanation: `${M(`(${m})(4.184)(${dT}) = ${num(q)}\\ \\text{J}`)}.`,
     }
@@ -216,11 +216,11 @@ export const chem: Gen[] = [
       prompt: `A radioactive sample has a half-life of ${th} days. If it starts at ${N0} g, how much remains after ${th * k} days?`,
       ...opts(N0 / 2 ** k, [N0 / k, N0 - k * 10, N0 / (2 * k), N0 / 2 ** (k + 1)], 'g'),
       hint: 'After n half-lives the amount is N₀ × (½)ⁿ.',
-      explanation: `${k} half-lives: ${N0} × (1/2)^${k} = ${num(N0 / 2 ** k)} g.`,
+      explanation: `${k} half-li${k === 1 ? 'fe' : 'ves'}: ${N0} × (1/2)^${k} = ${num(N0 / 2 ** k)} g.`,
     }
   }),
   g(2, 'Rate laws', rng => {
-    const m = randInt(rng, 0, 2), n = randInt(rng, 0, 2)
+    const m = randInt(rng, 0, 2)
     const o = ['zero', 'first', 'second'][m]
     return {
       topic: 'Rate laws',
@@ -228,7 +228,7 @@ export const chem: Gen[] = [
       correct: `${o} order`,
       wrong: ['zero order', 'first order', 'second order', 'third order'].filter(x => x !== `${o} order`),
       hint: 'If doubling the concentration multiplies the rate by 2ᵐ, the order is m.',
-      explanation: `Rate ∝ [A]^m; 2^m = ${2 ** m}, so m = ${m}. (n = ${n} is unrelated here.)`,
+      explanation: `Rate ∝ [A]^m; 2^m = ${2 ** m}, so m = ${m}.`,
     }
   }),
   g(2, 'Colligative properties', rng => {

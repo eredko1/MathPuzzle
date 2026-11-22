@@ -185,7 +185,7 @@ export const calc1: Gen[] = [
     const val = F(b ** p, p + 1)
     return {
       topic: 'Average value',
-      prompt: `What is the average value of ${M(`f(x) = x^{${p}}`)} on the interval ${M(`[0, ${b}]`)}?`,
+      prompt: `What is the average value of ${M(`f(x) = x${p === 1 ? '' : `^{${p}}`}`)} on the interval ${M(`[0, ${b}]`)}?`,
       correct: M(fTex(val)),
       wrong: [FR(b ** (p + 1), p + 1), FR(b ** p, 1), FR(b ** (p + 1), (p + 1) * b * 2), FR(b ** p, p + 2)],
       hint: 'Average value = (1 / (b − a)) × ∫ f.',
@@ -239,7 +239,7 @@ export const calc1: Gen[] = [
         : `The radius of a circle increases at ${dr} cm/s. How fast is its area increasing (in cm²/s) when the radius is ${r} cm?`,
       correct: M(sphere ? `${4 * r * r * dr}\\pi` : `${2 * r * dr}\\pi`),
       wrong: sphere
-        ? [M(`${r * r * dr}\\pi`), M(`${Math.round((4 * r ** 3) / 3)}\\pi`), M(`${8 * r * dr}\\pi`)]
+        ? [M(`${r * r * dr}\\pi`), M(`${Math.round((4 * r ** 3) / 3)}\\pi`), M(`${8 * r * dr}\\pi`), M(`${2 * r * dr}\\pi`), M(`${4 * r * r}\\pi`), M(`${8 * r * r * dr}\\pi`)]
         : [M(`${r * r * dr}\\pi`), M(`${r * r}\\pi`), M(`${2 * r}\\pi`), M(`${r * dr}\\pi`)],
       hint: sphere ? 'Differentiate V = (4/3)πr³ with respect to t.' : 'Differentiate A = πr² with respect to t.',
       explanation: sphere ? `${M(`dV/dt = 4\\pi r^2\\,dr/dt = ${4 * r * r * dr}\\pi`)}.` : `${M(`dA/dt = 2\\pi r\\,dr/dt = ${2 * r * dr}\\pi`)}.`,
@@ -307,7 +307,7 @@ export const calc1: Gen[] = [
     const a = randInt(rng, -4, 2), w = 2 * randInt(rng, 1, 4), b = a + w, k = nz(rng, 1, 3)
     return {
       topic: 'Mean Value Theorem',
-      prompt: `For ${M(`f(x) = x^2 ${k < 0 ? '-' : '+'} ${Math.abs(k)}x`)} on ${M(`[${a}, ${b}]`)}, the Mean Value Theorem guarantees a point ${M('c')} where ${M("f'(c)")} equals the average slope. What is ${M('c')}?`,
+      prompt: `For ${M(`f(x) = x^2 ${k < 0 ? '-' : '+'} ${co(Math.abs(k))}x`)} on ${M(`[${a}, ${b}]`)}, the Mean Value Theorem guarantees a point ${M('c')} where ${M("f'(c)")} equals the average slope. What is ${M('c')}?`,
       correct: T((a + b) / 2),
       wrong: [T(a), T(b), T((a + b) / 2 + k), T(((a + b) / 2) * 2)].filter(s => s !== T((a + b) / 2)),
       hint: 'Average slope = (f(b) − f(a)) / (b − a). Set f′(c) equal to it.',

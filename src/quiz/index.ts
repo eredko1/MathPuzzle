@@ -72,8 +72,39 @@ function bankShare(bank: number, gens: number) {
   return Math.min(0.75, Math.max(0.25, bank / (bank + gens * 40)))
 }
 
+function basePick(date: string, subject: Subject, attempt: number): Pick {
+  return {
+    subject,
+    level: dailyLevel(date, subject),
+    seed: `daily:${date}:${subject}${attempt ? ':' + attempt : ''}`,
+    cursor: dayNumber(date) + attempt * 7919,
+  }
+}
+
+const EPOCH = dayNumber('2026-01-01')
+const dateOf = (day: number) => new Date(day * 86400000).toISOString().slice(0, 10)
+const history = new Map<Subject, { seen: Set<string>; picks: Pick[] }>()
+
+/**
+ * The day's pick for a subject. Walks forward from a fixed epoch so no prompt repeats on a later day
+ * until a pool is truly exhausted. Deterministic: every device computes the same history.
+ */
 export function dailyPick(date: string, subject: Subject): Pick {
-  return { subject, level: dailyLevel(date, subject), seed: `daily:${date}:${subject}`, cursor: dayNumber(date) }
+  const d = dayNumber(date) - EPOCH
+  if (d < 0 || d > 4000) return basePick(date, subject, 0)
+  let h = history.get(subject)
+  if (!h) history.set(subject, (h = { seen: new Set(), picks: [] }))
+  while (h.picks.length <= d) {
+    const day = dateOf(EPOCH + h.picks.length)
+    let pick = basePick(day, subject, 0)
+    for (let attempt = 0; attempt < 12; attempt++) {
+      pick = basePick(day, subject, attempt)
+      if (!h.seen.has(makeQuestion(pick).prompt)) break
+    }
+    h.seen.add(makeQuestion(pick).prompt)
+    h.picks.push(pick)
+  }
+  return h.picks[d]
 }
 
 export function practicePick(subject: Subject, level: Level, topic?: string): Pick {

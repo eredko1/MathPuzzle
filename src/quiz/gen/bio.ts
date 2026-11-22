@@ -5,7 +5,7 @@ const g = (level: Level, topic: string, make: Gen['make']): Gen => ({ level, top
 const FR = (n: number, d: number) => M(fTex(F(n, d)))
 function numOpts(c: number, slips: number[], u = '', sig = 3) {
   const ut = u ? `\\,\\text{${u.replace(/[µμ]/g, '}\\mu\\text{')}}` : ''
-  const f = (x: number) => M(`${num(x, sig)}${ut}`)
+  const f = (x: number) => M(`${num(x, sig)}${ut}`.replace(/\\text\{\}/g, ''))
   const all = [...slips, c * 2, c / 2, c * 10, c / 10, c + 1, c - 1, c * 1.5]
   return { correct: f(c), wrong: all.filter(x => isFinite(x) && f(x) !== f(c)).map(f) }
 }
@@ -30,7 +30,7 @@ export const bio: Gen[] = [
     const [p1, p2, ph, n, d] = cross
     return {
       topic: 'Monohybrid crosses',
-      prompt: `In pea plants, tall (T) is dominant to short (t). Using the allele pair A/a (A dominant), what is the probability that an offspring of ${M(`\\text{${p1}}\\times\\text{${p2}}`)} shows the ${ph} phenotype?`,
+      prompt: `A gene has a dominant allele A and a recessive allele a. What is the probability that an offspring of ${M(`\\text{${p1}}\\times\\text{${p2}}`)} shows the ${ph} phenotype?`,
       correct: FR(n, d),
       wrong: [FR(1, 4), FR(1, 2), FR(3, 4), FR(1, 1), FR(0, 1)],
       hint: 'Draw a Punnett square: each parent contributes one allele.',
@@ -147,12 +147,12 @@ export const bio: Gen[] = [
     }
   }),
   g(2, 'Serial dilution', rng => {
-    const v = pick(rng, [9, 99]), k = randInt(rng, 2, 6)
+    const v = pick(rng, [9, 99]), k = v === 9 ? randInt(rng, 2, 6) : randInt(rng, 2, 3)
     const factor = (v + 1) ** k
-    const c0 = pick(rng, [1e9, 5e8, 2e8, 1e10])
+    const c0 = pick(rng, [1e9, 5e9, 2e10, 8e9])
     return {
       topic: 'Serial dilution',
-      prompt: `A culture contains ${M(`${(c0 / 1e9).toLocaleString('en-US')}\\times10^9`)} cells/mL. You transfer 1 mL into ${v} mL of diluent, and repeat this ${k} time${k > 1 ? 's' : ''} in series. What is the final concentration (cells/mL)?`,
+      prompt: `A culture contains ${M(`${num(c0 / 1e9)}\\times10^9`)} cells/mL. You transfer 1 mL into ${v} mL of diluent, and repeat this ${k} time${k > 1 ? 's' : ''} in series. What is the final concentration (cells/mL)?`,
       ...numOpts(c0 / factor, [c0 / (factor / (v + 1)), c0 / (v * k), c0 * factor, c0 / (k * (v + 1))], ''),
       hint: `Each step dilutes by a factor of ${v + 1} (1 part in ${v + 1} total).`,
       explanation: `Total dilution = ${v + 1}^${k} = ${factor.toLocaleString('en-US')}.`,
@@ -287,7 +287,7 @@ export const bio: Gen[] = [
     return {
       topic: 'PCR',
       prompt: `Starting with a single double-stranded DNA template, about how many copies of the target sequence exist after ${n} ideal PCR cycles?`,
-      ...numOpts(2 ** n, [n * 2, n * n, 2 ** (n - 1), 2 ** (n + 1)], '', 3),
+      ...numOpts(2 ** n, [n * 2, n * n, 2 ** (n - 1), 2 ** (n + 1)], '', 6),
       hint: 'Each cycle doubles the number of copies.',
       explanation: `2^${n} = ${num(2 ** n)}.`,
     }
