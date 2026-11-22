@@ -49,10 +49,12 @@ Breadth *and* depth, with the feel of being back in school. It should work on an
 - Verification scripts: `npm run verify:quiz`, `npm run verify:test` (add one per new feature; keep the
   "KaTeX renders / 4 distinct choices / deterministic" checks).
 
-## Housekeeping / decisions pending
-- `math-crosswords` (the original live link) is **not** connected to GitHub, so pushes do not update it; it was
-  deployed from the repo manually. A second Vercel project, `math-quiz`, *is* connected and auto-deploys but is now
-  redundant. Either delete `math-quiz` or connect `math-crosswords` to GitHub.
+## Hosting (decided)
+- **One link: the `math-quiz` Vercel project** (https://math-quiz-neon.vercel.app). It is connected to GitHub and
+  auto-deploys the default branch (`claude/kind-newton-jlgkey`) on every merge.
+- The old `math-crosswords` project now serves only a redirect (`redirect/`) to the new link. It carries saved
+  progress across in the URL fragment (`src/migrate.ts` imports it once, never overwriting) and unregisters the old
+  service worker. It is not connected to GitHub; leave it as a redirect (or delete it once the old link is no longer needed).
 - Vercel login protection is on for both projects (team default); turn it off if the app should open without signing in.
 
 ## Open questions for the owner
