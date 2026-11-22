@@ -1,4 +1,4 @@
-# Math Crosswords & Daily Quiz
+# Math Quiz
 
 An ad-free puzzle app with two modes. It's an installable PWA that works offline.
 

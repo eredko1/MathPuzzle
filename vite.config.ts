@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Math Crosswords & Daily Quiz',
-        short_name: 'Math Cross',
+        name: 'Math Quiz',
+        short_name: 'Math Quiz',
         description: 'Relaxing math crosswords plus a daily STEM and English quiz. No ads, works offline.',
         theme_color: '#f8f7f3',
         background_color: '#f8f7f3',
